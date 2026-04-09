@@ -49,9 +49,20 @@ vignettes/*.pdf
 *.rds
 *.Rds
 
-# IDE files 
+# IDE files
 .DS_Store
 .idea
+
+# R check artifacts
+..Rcheck/
+
+# Archived legacy code
+archive/
+
+# Local staging data (downloaded from BLS, never commit)
+data/qcew/
+data/qcew_sic/
+qcew_processed/
 
 # Ignore everything in the data and export files
 # Except for README files

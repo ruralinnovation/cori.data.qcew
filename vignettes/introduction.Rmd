@@ -1,0 +1,162 @@
+---
+title: "Introduction to cori.data.qcew"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to cori.data.qcew}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = TRUE,
+  message  = FALSE,
+  warning  = FALSE,
+  fig.width  = 9,
+  fig.height = 6,
+  out.width  = "100%"
+)
+```
+
+`cori.data.qcew` provides access to Bureau of Labor Statistics Quarterly Census
+of Employment and Wages (QCEW) data processed and hosted by CORI. The package
+covers county, state, and national employment and wages from **1990 to present**.
+
+## Reading data from S3
+
+The primary function is `read_qcew_from_s3()`. By default it returns the latest
+vintage, all geographies, all years, and all variables.
+
+```{r read-basic}
+library(cori.data.qcew)
+
+df <- read_qcew_from_s3()
+```
+
+In practice you will almost always filter by variable, years, and geography:
+
+```{r read-filtered}
+# Employment for all West Virginia counties, 2010-2024
+df <- read_qcew_from_s3(
+  variables = "annual_avg_emplvl",
+  geoids    = "54",          # 2-digit state FIPS returns all WV rows
+  years     = 2010:2024
+)
+```
+
+### Geoid conventions
+
+| `geoid` | Meaning |
+|---|---|
+| `"00"` | National total |
+| `"54"` | State total (West Virginia) |
+| `"54039"` | County (Kanawha County, WV) |
+
+```{r read-mixed}
+df <- read_qcew_from_s3(
+  geoids    = c("00", "54039"),
+  variables = "annual_avg_emplvl"
+)
+```
+
+## Data structure
+
+Every row is one geoid / year / variable observation:
+
+```{r structure}
+dplyr::glimpse(df)
+#> Rows: ...
+#> $ geoid    <chr>  "54039", "54039", ...
+#> $ year     <int>  2023, 2023, ...
+#> $ variable <chr>  "annual_avg_emplvl", "annual_avg_pay", ...
+#> $ value    <dbl>  97110, 52840, ...
+#> $ agg_var  <dbl>  NA, 97110, ...
+```
+
+`agg_var` is the employment weight used for computing employment-weighted
+averages of wage variables upstream. It is `NA` for employment counts.
+
+## Codebook
+
+`get_qcew_codebook()` documents every variable:
+
+```{r codebook}
+cb <- get_qcew_codebook()
+cb
+```
+
+| Variable | Label | Unit |
+|---|---|---|
+| `annual_avg_emplvl` | Average annual employment | workers |
+| `tradable_goods_emp_share` | Tradable goods employment share | proportion (0–1) |
+| `tradable_services_emp_share` | Tradable services employment share | proportion (0–1) |
+| `local_services_emp_share` | Local services employment share | proportion (0–1) |
+| `annual_avg_pay` | Average annual pay | dollars/worker (nominal) |
+| `tradable_goods_avg_annual_pay` | Tradable goods avg. annual pay | dollars/worker (nominal) |
+| `tradable_services_avg_annual_pay` | Tradable services avg. annual pay | dollars/worker (nominal) |
+| `local_services_avg_annual_pay` | Local services avg. annual pay | dollars/worker (nominal) |
+| `hhi_emp` | Employment HHI | index (0–10,000) |
+
+CORI super-sector definitions:
+
+| Super-sector | BLS NAICS industries included |
+|---|---|
+| Tradable goods | Natural resources and mining, Construction, Manufacturing, Trade/transportation/utilities |
+| Tradable services | Information, Financial activities, Professional and business services |
+| Local services | Education and health services, Leisure and hospitality, Other services, Public administration |
+
+## Vintage management
+
+Each vintage is a complete snapshot of all years. The `_LATEST` pointer on S3
+always points to the most recently published vintage.
+
+```{r vintage}
+# Check the current vintage
+latest_qcew_vintage()
+#> [1] "vintage_2024"
+
+# Read a specific vintage explicitly
+df_2024 <- read_qcew_from_s3(vintage = "2024")
+```
+
+## A simple example
+
+```{r example}
+library(cori.data.qcew)
+library(cori.charts)
+library(dplyr)
+library(ggplot2)
+
+load_fonts()
+
+kanawha <- read_qcew_from_s3(
+  geoids    = "54039",
+  variables = "annual_avg_emplvl",
+  years     = 1990:2024
+)
+
+ggplot(kanawha, aes(x = year, y = value)) +
+  geom_line(linewidth = 1.2, color = cori_colors[["Emerald"]]) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_x_continuous(
+    expand   = expansion(mult = c(0, 0)),
+    n.breaks = 6
+  ) +
+  theme_cori() +
+  labs(
+    title   = "Average Annual Employment — Kanawha County, WV",
+    x       = NULL,
+    y       = NULL,
+    caption = "Source: BLS Quarterly Census of Employment and Wages via cori.data.qcew"
+  )
+```
+
+## Further reading
+
+- `vignette("rural-employment-trends")` — comparing rural and nonrural
+  employment since the Great Recession using `ruraldefinitions`
