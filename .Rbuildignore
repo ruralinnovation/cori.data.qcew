@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^data/qcew
+^data/qcew_sic
+^data/README\.md
+^RELEASE_CALENDAR\.md$
+^export
+^planning
+^qcew_raw
+^qcew_processed

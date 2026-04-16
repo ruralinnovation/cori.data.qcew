@@ -1,0 +1,39 @@
+Package: cori.data.qcew
+Type: Package
+Title: Access and Analyze BLS Quarterly Census of Employment and Wages
+Version: 0.1.0
+Authors@R: person("Drew", "Rosebush", email = "drew.rosebush@ruralinnovation.us", role = c("aut", "cre"))
+Description: Access and analyze Bureau of Labor Statistics Quarterly Census of
+    Employment and Wages (QCEW) data at the county, state, and national level.
+    Provides tools to download data from BLS, read processed data from S3, and
+    analyze employment and wages by NAICS sector and CORI super-sector
+    classification (tradable goods, tradable services, local services).
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    DBI,
+    dplyr,
+    duckdb,
+    janitor,
+    readxl,
+    rlang,
+    stringr,
+    utils
+Remotes:
+    ruralinnovation/cori.db
+Suggests:
+    cori.db,
+    cori.charts,
+    cori.utils,
+    ruraldefinitions,
+    ggbeeswarm,
+    ggplot2,
+    ggrepel,
+    knitr,
+    rmarkdown,
+    scales,
+    sf,
+    tigris
+RoxygenNote: 7.3.3
+VignetteBuilder: knitr
