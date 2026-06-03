@@ -8,7 +8,7 @@ get_qcew_codebook()
 }
 \value{
 A data frame with columns: \code{variable}, \code{label},
-  \code{unit}, \code{nominal}, \code{notes}.
+\code{unit}, \code{nominal}, \code{notes}.
 }
 \description{
 Returns documentation for all variables produced by the CORI QCEW processing

@@ -4,6 +4,7 @@
 ^data/qcew_sic
 ^data/README\.md
 ^RELEASE_CALENDAR\.md$
+^MAINTAINING\.md$
 ^export
 ^planning
 ^qcew_raw

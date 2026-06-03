@@ -67,6 +67,6 @@ write_qcew_processed_to_s3(vintage = "2024", overwrite = TRUE)
 }
 \seealso{
 \code{\link{write_qcew_raw_to_s3}}, \code{\link{read_qcew_from_s3}},
-  \code{\link{get_qcew_codebook}}
+\code{\link{get_qcew_codebook}}
 }
 \keyword{internal}

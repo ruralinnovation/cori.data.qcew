@@ -8,6 +8,7 @@ write_qcew_raw_to_s3(
   years = 1990:as.integer(format(Sys.Date(), "\%Y")),
   staging_dir = "data/qcew",
   s3_bucket = "cori.data.qcew",
+  overwrite = FALSE,
   sync_to_s3 = TRUE
 )
 }
@@ -18,6 +19,10 @@ write_qcew_raw_to_s3(
 Default: \code{"data/qcew"}.}
 
 \item{s3_bucket}{Character. S3 bucket name. Default: \code{"cori.data.qcew"}.}
+
+\item{overwrite}{Logical. If \code{TRUE}, delete existing S3 year partitions
+before uploading. Use when re-publishing years already on S3.
+Default: \code{FALSE}.}
 
 \item{sync_to_s3}{Logical. Upload to S3 after writing locally. Default: \code{TRUE}.}
 }
@@ -39,6 +44,9 @@ write_qcew_raw_to_s3()
 
 # Specific years, local only
 write_qcew_raw_to_s3(years = 2022:2024, sync_to_s3 = FALSE)
+
+# Add a new year when data_raw/ already exists in S3
+write_qcew_raw_to_s3(years = 2025, overwrite = TRUE)
 }
 
 }
