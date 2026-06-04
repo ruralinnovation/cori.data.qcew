@@ -195,7 +195,13 @@ write_qcew_processed_to_s3 <- function(vintage        = NULL,
   message("Pulling HHI...")
   hhi <- pull_hhi(years, staging_dir = staging_dir)
 
-  processed <- dplyr::bind_rows(emp, sect_emp, pay, sect_pay, hhi)
+  message("Pulling industry employment and shares...")
+  ind_emp <- .pull_industry_employment(years, staging_dir = staging_dir)
+
+  message("Pulling industry pay...")
+  ind_pay <- .pull_industry_pay(years, staging_dir = staging_dir)
+
+  processed <- dplyr::bind_rows(emp, sect_emp, pay, sect_pay, hhi, ind_emp, ind_pay)
 
   # -- Derive vintage ----------------------------------------------------------
   if (is.null(vintage)) {
