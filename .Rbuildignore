@@ -10,3 +10,4 @@
 ^qcew_raw
 ^qcew_processed
 ^LICENSE\.md$
+^\.git$
