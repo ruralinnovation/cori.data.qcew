@@ -9,6 +9,23 @@ TRADABLE_SERVICES  <- c("Information", "Financial activities", "Professional and
 LOCAL_SERVICES     <- c("Education and health services", "Leisure and hospitality",
                         "Other services", "Public administration")
 
+# BLS NAICS industry name -> snake_case variable prefix mapping.
+# Names are the raw BLS industry strings from the high-level county file.
+# Public administration is derived from government ownership rows, not a raw BLS industry.
+INDUSTRY_LABELS <- c(
+  "Natural resources and mining"          = "natural_resources_mining",
+  "Construction"                          = "construction",
+  "Manufacturing"                         = "manufacturing",
+  "Trade, transportation, and utilities"  = "trade_transportation_utilities",
+  "Information"                           = "information",
+  "Financial activities"                  = "financial_activities",
+  "Professional and business services"    = "professional_business_services",
+  "Education and health services"         = "education_health_services",
+  "Leisure and hospitality"               = "leisure_hospitality",
+  "Other services"                        = "other_services",
+  "Public administration"                 = "public_administration"
+)
+
 
 #' Pull total employment across multiple years
 #'
@@ -126,6 +143,77 @@ pull_sectoral_pay <- function(years, staging_dir = "data/qcew") {
       dplyr::mutate(
         value    = weighted_wages / agg_var,
         variable = paste0(sector, "_avg_annual_pay")
+      ) |>
+      dplyr::select(geoid, year, variable, value, agg_var)
+  }) |>
+    dplyr::bind_rows()
+}
+
+
+# Pull employment counts and shares by BLS NAICS industry.
+# Returns two rows per geoid/year/industry: one for count ({industry}_emplvl,
+# no agg_var) and one for share ({industry}_emp_share, agg_var = total employment).
+.pull_industry_employment <- function(years, staging_dir = "data/qcew") {
+  lapply(years, function(yr) {
+    dta <- read_qcew_county_data(yr, staging_dir = staging_dir, keep_industries = TRUE)
+
+    ind <- dta |>
+      dplyr::mutate(
+        industry = dplyr::if_else(
+          ownership %in% c("Federal Government", "State Government", "Local Government"),
+          "Public administration", industry
+        ),
+        industry = stringr::str_remove(industry, "^\\d+\\s+")
+      ) |>
+      dplyr::filter(industry %in% names(INDUSTRY_LABELS)) |>
+      dplyr::group_by(geoid, year, industry) |>
+      dplyr::summarise(emp = sum(annual_average_employment, na.rm = TRUE), .groups = "drop") |>
+      dplyr::group_by(geoid, year) |>
+      dplyr::mutate(total_emp = sum(emp)) |>
+      dplyr::ungroup() |>
+      dplyr::mutate(prefix = INDUSTRY_LABELS[industry])
+
+    counts <- ind |>
+      dplyr::mutate(variable = paste0(prefix, "_emplvl")) |>
+      dplyr::select(geoid, year, variable, value = emp)
+
+    shares <- ind |>
+      dplyr::mutate(
+        variable = paste0(prefix, "_emp_share"),
+        value    = emp / total_emp
+      ) |>
+      dplyr::select(geoid, year, variable, value, agg_var = total_emp)
+
+    dplyr::bind_rows(counts, shares)
+  }) |>
+    dplyr::bind_rows()
+}
+
+
+# Pull employment-weighted average annual pay by BLS NAICS industry.
+# agg_var = industry employment (weight for downstream aggregation).
+.pull_industry_pay <- function(years, staging_dir = "data/qcew") {
+  lapply(years, function(yr) {
+    dta <- read_qcew_county_data(yr, staging_dir = staging_dir, keep_industries = TRUE)
+
+    dta |>
+      dplyr::mutate(
+        industry = dplyr::if_else(
+          ownership %in% c("Federal Government", "State Government", "Local Government"),
+          "Public administration", industry
+        ),
+        industry = stringr::str_remove(industry, "^\\d+\\s+")
+      ) |>
+      dplyr::filter(industry %in% names(INDUSTRY_LABELS)) |>
+      dplyr::group_by(geoid, year, industry) |>
+      dplyr::summarise(
+        agg_var        = sum(annual_average_employment, na.rm = TRUE),
+        weighted_wages = sum(annual_average_pay * annual_average_employment, na.rm = TRUE),
+        .groups = "drop"
+      ) |>
+      dplyr::mutate(
+        variable = paste0(INDUSTRY_LABELS[industry], "_avg_annual_pay"),
+        value    = weighted_wages / agg_var
       ) |>
       dplyr::select(geoid, year, variable, value, agg_var)
   }) |>

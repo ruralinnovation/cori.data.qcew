@@ -79,3 +79,6 @@ qcew_processed/
 !export/README.md
 
 
+inst/doc
+.Rproj.user
+.quarto

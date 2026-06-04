@@ -8,7 +8,10 @@ get_qcew_codebook()
 }
 \value{
 A data frame with columns: \code{variable}, \code{label},
-  \code{unit}, \code{nominal}, \code{notes}.
+\code{unit}, \code{nominal}, \code{agg_var}, \code{notes}.
+\code{agg_var} describes the weighting variable returned alongside \code{value}
+in \code{\link{read_qcew_from_s3}}. \code{NA} means no aggregation weight
+is applicable for that variable.
 }
 \description{
 Returns documentation for all variables produced by the CORI QCEW processing

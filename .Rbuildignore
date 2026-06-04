@@ -4,7 +4,10 @@
 ^data/qcew_sic
 ^data/README\.md
 ^RELEASE_CALENDAR\.md$
+^MAINTAINING\.md$
 ^export
 ^planning
 ^qcew_raw
 ^qcew_processed
+^LICENSE\.md$
+^\.git$

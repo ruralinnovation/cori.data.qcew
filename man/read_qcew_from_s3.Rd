@@ -35,7 +35,7 @@ uploads. Default: \code{""} (no prefix).}
 }
 \value{
 A data frame with columns: \code{geoid}, \code{year},
-  \code{variable}, \code{value}, \code{agg_var}.
+\code{variable}, \code{value}, \code{agg_var}.
 }
 \description{
 Queries the CORI tidy QCEW parquet files from S3 using DuckDB with the

@@ -37,3 +37,4 @@ Suggests:
     tigris
 RoxygenNote: 7.3.3
 VignetteBuilder: knitr
+Roxygen: list(markdown = TRUE)

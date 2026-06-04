@@ -47,6 +47,9 @@ latest_qcew_vintage <- function(s3_bucket = "cori.data.qcew") {
 #' @param staging_dir Character. Local directory for staging downloads.
 #'   Default: \code{"data/qcew"}.
 #' @param s3_bucket Character. S3 bucket name. Default: \code{"cori.data.qcew"}.
+#' @param overwrite Logical. If \code{TRUE}, delete existing S3 year partitions
+#'   before uploading. Use when re-publishing years already on S3.
+#'   Default: \code{FALSE}.
 #' @param sync_to_s3 Logical. Upload to S3 after writing locally. Default: \code{TRUE}.
 #'
 #' @return Invisibly, total row count written.
@@ -60,6 +63,9 @@ latest_qcew_vintage <- function(s3_bucket = "cori.data.qcew") {
 #'
 #' # Specific years, local only
 #' write_qcew_raw_to_s3(years = 2022:2024, sync_to_s3 = FALSE)
+#'
+#' # Add a new year when data_raw/ already exists in S3
+#' write_qcew_raw_to_s3(years = 2025, overwrite = TRUE)
 #' }
 #'
 #' @keywords internal
@@ -67,6 +73,7 @@ latest_qcew_vintage <- function(s3_bucket = "cori.data.qcew") {
 write_qcew_raw_to_s3 <- function(years       = 1990:as.integer(format(Sys.Date(), "%Y")),
                                   staging_dir = "data/qcew",
                                   s3_bucket   = "cori.data.qcew",
+                                  overwrite   = FALSE,
                                   sync_to_s3  = TRUE) {
 
   out_dir <- file.path(staging_dir, "s3_raw")
@@ -102,7 +109,16 @@ write_qcew_raw_to_s3 <- function(years       = 1990:as.integer(format(Sys.Date()
   message(sprintf("Raw parquet written to %s (%s total rows)", out_dir,
                   format(total_rows, big.mark = ",")))
 
-  if (sync_to_s3) .upload_to_s3(s3_bucket, "data_raw/", out_dir)
+  if (sync_to_s3) {
+    if (overwrite) {
+      for (yr in years) {
+        s3_uri <- sprintf("s3://%s/data_raw/year=%d/", s3_bucket, yr)
+        message(sprintf("Deleting existing S3 prefix: %s", s3_uri))
+        system2("aws", args = c("s3", "rm", s3_uri, "--recursive"))
+      }
+    }
+    .upload_to_s3(s3_bucket, "data_raw/", out_dir)
+  }
 
   invisible(total_rows)
 }
@@ -179,7 +195,13 @@ write_qcew_processed_to_s3 <- function(vintage        = NULL,
   message("Pulling HHI...")
   hhi <- pull_hhi(years, staging_dir = staging_dir)
 
-  processed <- dplyr::bind_rows(emp, sect_emp, pay, sect_pay, hhi)
+  message("Pulling industry employment and shares...")
+  ind_emp <- .pull_industry_employment(years, staging_dir = staging_dir)
+
+  message("Pulling industry pay...")
+  ind_pay <- .pull_industry_pay(years, staging_dir = staging_dir)
+
+  processed <- dplyr::bind_rows(emp, sect_emp, pay, sect_pay, hhi, ind_emp, ind_pay)
 
   # -- Derive vintage ----------------------------------------------------------
   if (is.null(vintage)) {

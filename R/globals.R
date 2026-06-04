@@ -24,7 +24,7 @@ utils::globalVariables(c(
   "industry", "sector",
 
   # Intermediate computation
-  "emp", "share", "agg_var", "weighted_wages",
+  "emp", "share", "agg_var", "weighted_wages", "prefix", "total_emp",
 
   # Processed output columns
   "variable", "value"
