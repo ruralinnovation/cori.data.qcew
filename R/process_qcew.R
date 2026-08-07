@@ -33,7 +33,6 @@ INDUSTRY_LABELS <- c(
 #' @param staging_dir Character. Local staging directory. Default: \code{"data/qcew"}.
 #'
 #' @keywords internal
-#' @export
 pull_employment <- function(years, staging_dir = "data/qcew") {
   lapply(years, function(yr) {
     read_qcew_county_data(yr, staging_dir = staging_dir) |>
@@ -53,7 +52,6 @@ pull_employment <- function(years, staging_dir = "data/qcew") {
 #' @param staging_dir Character. Local staging directory. Default: \code{"data/qcew"}.
 #'
 #' @keywords internal
-#' @export
 pull_sectoral_employment <- function(years, staging_dir = "data/qcew") {
   lapply(years, function(yr) {
     dta <- read_qcew_county_data(yr, staging_dir = staging_dir, keep_industries = TRUE)
@@ -95,7 +93,6 @@ pull_sectoral_employment <- function(years, staging_dir = "data/qcew") {
 #' @param staging_dir Character. Local staging directory. Default: \code{"data/qcew"}.
 #'
 #' @keywords internal
-#' @export
 pull_annual_pay <- function(years, staging_dir = "data/qcew") {
   lapply(years, function(yr) {
     read_qcew_county_data(yr, staging_dir = staging_dir) |>
@@ -113,7 +110,6 @@ pull_annual_pay <- function(years, staging_dir = "data/qcew") {
 #' @param staging_dir Character. Local staging directory. Default: \code{"data/qcew"}.
 #'
 #' @keywords internal
-#' @export
 pull_sectoral_pay <- function(years, staging_dir = "data/qcew") {
   lapply(years, function(yr) {
     dta <- read_qcew_county_data(yr, staging_dir = staging_dir, keep_industries = TRUE)
@@ -227,7 +223,6 @@ pull_sectoral_pay <- function(years, staging_dir = "data/qcew") {
 #' @param staging_dir Character. Local staging directory. Default: \code{"data/qcew"}.
 #'
 #' @keywords internal
-#' @export
 pull_hhi <- function(years, staging_dir = "data/qcew") {
   lapply(years, function(yr) {
     dta <- read_qcew_county_data(yr, staging_dir = staging_dir, keep_industries = TRUE)

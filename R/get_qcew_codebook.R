@@ -1,136 +1,122 @@
 #' Get the cori.data.qcew variable codebook
 #'
-#' Returns documentation for all variables produced by the CORI QCEW processing
-#' pipeline, including variable names, labels, units, and notes.
+#' Returns documentation for all variables exposed by the public `get_*`
+#' functions, including variable names, descriptions, units, and which
+#' function returns each variable.
 #'
-#' @return A data frame with columns: \code{variable}, \code{label},
-#'   \code{unit}, \code{nominal}, \code{agg_var}, \code{notes}.
-#'   \code{agg_var} describes the weighting variable returned alongside \code{value}
-#'   in \code{\link{read_qcew_from_s3}}. \code{NA} means no aggregation weight
-#'   is applicable for that variable.
+#' @return A data frame with columns:
+#'   - `variable`: Column name as it appears in `get_*` function output
+#'   - `source_function`: Pipe-separated list of functions that return this variable
+#'   - `raw_variable`: Original BLS/processed variable name (or "derived")
+#'   - `description`: Plain-language description
+#'   - `unit`: Unit of measurement
+#'   - `category`: Variable category
+#'   - `agg_var_description`: What `agg_var` represents for this variable
+#'     (`NA` if `agg_var` is not returned by the source function)
 #'
-#' @seealso \code{\link{read_qcew_from_s3}}
+#' @details
+#' All `get_*` functions return tidy (long) format. The `variable` column
+#' identifies the metric; `value` holds the numeric result. Sector functions
+#' add a `sector` dimension column. Where `agg_var` is returned, it carries
+#' the employment weight used for computing employment-weighted averages
+#' across geographies.
+#'
+#' @seealso [get_employment()], [get_wage_salary()], [get_sector_employment()],
+#'   [get_sector_wages()], [get_employment_concentration()]
 #'
 #' @examples
-#' cb <- get_qcew_codebook()
-#' cb
+#' get_qcew_codebook()
 #'
 #' @export
 get_qcew_codebook <- function() {
 
-  cori_sectors <- c("tradable_goods", "tradable_services", "local_services")
-  cori_labels  <- c("Tradable goods", "Tradable services", "Local services")
+  bls_sector_fns  <- "get_sector_employment | get_sector_wages"
+  cori_sector_fns <- "get_sector_employment | get_sector_wages"
 
-  ind_prefixes <- unname(INDUSTRY_LABELS)
-  ind_labels   <- c(
-    "Natural resources & mining",
-    "Construction",
-    "Manufacturing",
-    "Trade, transportation & utilities",
-    "Information",
-    "Financial activities",
-    "Professional & business services",
-    "Education & health services",
-    "Leisure & hospitality",
-    "Other services",
-    "Public administration"
-  )
+  data.frame(
+    stringsAsFactors = FALSE,
 
-  rbind(
-    data.frame(
-      stringsAsFactors = FALSE,
+    variable = c(
+      # Aggregate metrics
+      "employment",
+      "avg_pay",
+      "employment_hhi",
+      # Sector dimension (returned by sector functions)
+      "sector",
+      # Sector-level metrics
+      "emp_share",
+      "avg_pay"
+    ),
 
-      variable = c(
-        "annual_avg_emplvl",
-        paste0(cori_sectors, "_emp_share"),
-        "annual_avg_pay",
-        paste0(cori_sectors, "_avg_annual_pay"),
-        "hhi_emp"
+    source_function = c(
+      "get_employment | get_sector_employment",
+      "get_wage_salary | get_sector_wages",
+      "get_employment_concentration",
+      bls_sector_fns,
+      "get_sector_employment",
+      "get_sector_wages"
+    ),
+
+    raw_variable = c(
+      "annual_avg_emplvl",
+      "annual_avg_pay",
+      "hhi_emp",
+      "derived",
+      "{sector}_emp_share",
+      "{sector}_avg_annual_pay"
+    ),
+
+    description = c(
+      "Average annual employment (total covered workers, private + government)",
+      "Average annual pay per worker. Nominal dollars; use cori.utils to deflate.",
+      paste0(
+        "Herfindahl-Hirschman Index of employment concentration across 11 BLS NAICS ",
+        "super-sectors. Sum of squared employment shares scaled to 100. Higher values ",
+        "indicate greater concentration (less economic diversity). Range: 0-10,000."
       ),
-
-      label = c(
-        "Average annual employment",
-        paste(cori_labels, "employment share"),
-        "Average annual pay",
-        paste(cori_labels, "avg. annual pay"),
-        "Employment HHI"
+      paste0(
+        "Sector identifier. BLS sector_type: 11 NAICS super-sectors ",
+        "(e.g. 'construction', 'manufacturing'). ",
+        "CORI sector_type: 3 super-sectors ",
+        "('tradable_goods', 'tradable_services', 'local_services')."
       ),
-
-      unit = c(
-        "workers",
-        rep("proportion (0-1)", 3),
-        "dollars per worker",
-        rep("dollars per worker", 3),
-        "index (0-10,000)"
+      paste0(
+        "Employment share of the sector as a proportion of total employment (0-1). ",
+        "BLS sector_type: available for all 11 sectors. ",
+        "CORI sector_type: available for all 3 super-sectors."
       ),
-
-      nominal = c(
-        FALSE,
-        FALSE, FALSE, FALSE,
-        TRUE,
-        TRUE, TRUE, TRUE,
-        FALSE
-      ),
-
-      agg_var = c(
-        NA,
-        rep("Total employment across all industries", 3),
-        "Total employment across all industries",
-        rep("Sector employment (sum of employment in that super-sector)", 3),
-        NA
-      ),
-
-      notes = c(
-        "Annual average of monthly employment levels. Total covered (private + government).",
-        paste0("Share of total employment in the CORI ", cori_labels, " super-sector."),
-        "BLS-published average annual pay. Nominal dollars. Use cori.utils to deflate.",
-        paste0("Employment-weighted average annual pay in the CORI ", cori_labels, " super-sector. Nominal dollars."),
-        paste0(
-          "Herfindahl-Hirschman Index of employment concentration across BLS NAICS super-sectors. ",
-          "Sum of squared employment shares (scaled to 100). ",
-          "Higher values indicate greater industry concentration."
-        )
+      paste0(
+        "Employment-weighted average annual pay for the sector. Nominal dollars. ",
+        "BLS sector_type: available for all 11 sectors. ",
+        "CORI sector_type: available for all 3 super-sectors."
       )
     ),
 
-    data.frame(
-      stringsAsFactors = FALSE,
+    unit = c(
+      "workers",
+      "dollars per worker",
+      "index (0-10,000)",
+      "label",
+      "proportion (0-1)",
+      "dollars per worker"
+    ),
 
-      variable = c(
-        paste0(ind_prefixes, "_emplvl"),
-        paste0(ind_prefixes, "_emp_share"),
-        paste0(ind_prefixes, "_avg_annual_pay")
-      ),
+    category = c(
+      "employment",
+      "wages",
+      "concentration",
+      "dimension",
+      "employment",
+      "wages"
+    ),
 
-      label = c(
-        paste(ind_labels, "employment"),
-        paste(ind_labels, "employment share"),
-        paste(ind_labels, "avg. annual pay")
-      ),
-
-      unit = c(
-        rep("workers", 11),
-        rep("proportion (0-1)", 11),
-        rep("dollars per worker", 11)
-      ),
-
-      nominal = c(
-        rep(FALSE, 11),
-        rep(FALSE, 11),
-        rep(TRUE, 11)
-      ),
-
-      agg_var = c(
-        rep(NA, 11),
-        rep("Total employment across all industries", 11),
-        rep("Industry employment (sum of employment in that industry)", 11)
-      ),
-
-      notes = c(
-        rep("Annual average employment count by BLS NAICS industry. Total covered (private + government).", 11),
-        rep("Share of total employment in BLS NAICS industry.", 11),
-        rep("Employment-weighted average annual pay by BLS NAICS industry. Nominal dollars.", 11)
-      )
+    agg_var_description = c(
+      NA,
+      "Total employment (weight for employment-weighted pay averages across geographies)",
+      NA,
+      NA,
+      "Total employment (weight for employment-weighted share aggregation)",
+      "Sector employment (weight for employment-weighted pay averages across geographies)"
     )
   )
 }
