@@ -12,7 +12,7 @@ if(latest_year <= s3_vintageyr){
   stopifnot(nrow(pull_employment(latest_year, staging_dir = tempdir()))>0)
   
   ## backup raw data in s3
-  write_qcew_raw_to_s3(years = latest_year)
+  write_qcew_raw_to_s3(years = 1990:latest_year)
   
   ## write new vintage
   write_qcew_processed_to_s3(
