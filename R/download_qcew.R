@@ -4,7 +4,6 @@
 #' @param staging_dir Character. Directory to save zip files. Default: \code{"data/qcew"}.
 #'
 #' @keywords internal
-#' @export
 download_qcew <- function(year, staging_dir = "data/qcew") {
 
   if (year < 1990) stop("NAICS-era data starts in 1990.")

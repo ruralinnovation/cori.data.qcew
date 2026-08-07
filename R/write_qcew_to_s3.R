@@ -69,7 +69,6 @@ latest_qcew_vintage <- function(s3_bucket = "cori.data.qcew") {
 #' }
 #'
 #' @keywords internal
-#' @export
 write_qcew_raw_to_s3 <- function(years       = 1990:as.integer(format(Sys.Date(), "%Y")),
                                   staging_dir = "data/qcew",
                                   s3_bucket   = "cori.data.qcew",
@@ -170,7 +169,6 @@ write_qcew_raw_to_s3 <- function(years       = 1990:as.integer(format(Sys.Date()
 #' }
 #'
 #' @keywords internal
-#' @export
 write_qcew_processed_to_s3 <- function(vintage        = NULL,
                                         years          = 1990:as.integer(format(Sys.Date(), "%Y")),
                                         staging_dir    = "data/qcew",

@@ -7,21 +7,35 @@
 get_qcew_codebook()
 }
 \value{
-A data frame with columns: \code{variable}, \code{label},
-\code{unit}, \code{nominal}, \code{agg_var}, \code{notes}.
-\code{agg_var} describes the weighting variable returned alongside \code{value}
-in \code{\link{read_qcew_from_s3}}. \code{NA} means no aggregation weight
-is applicable for that variable.
+A data frame with columns:
+\itemize{
+\item \code{variable}: Column name as it appears in \verb{get_*} function output
+\item \code{source_function}: Pipe-separated list of functions that return this variable
+\item \code{raw_variable}: Original BLS/processed variable name (or "derived")
+\item \code{description}: Plain-language description
+\item \code{unit}: Unit of measurement
+\item \code{category}: Variable category
+\item \code{agg_var_description}: What \code{agg_var} represents for this variable
+(\code{NA} if \code{agg_var} is not returned by the source function)
+}
 }
 \description{
-Returns documentation for all variables produced by the CORI QCEW processing
-pipeline, including variable names, labels, units, and notes.
+Returns documentation for all variables exposed by the public \verb{get_*}
+functions, including variable names, descriptions, units, and which
+function returns each variable.
+}
+\details{
+All \verb{get_*} functions return tidy (long) format. The \code{variable} column
+identifies the metric; \code{value} holds the numeric result. Sector functions
+add a \code{sector} dimension column. Where \code{agg_var} is returned, it carries
+the employment weight used for computing employment-weighted averages
+across geographies.
 }
 \examples{
-cb <- get_qcew_codebook()
-cb
+get_qcew_codebook()
 
 }
 \seealso{
-\code{\link{read_qcew_from_s3}}
+\code{\link[=get_employment]{get_employment()}}, \code{\link[=get_wage_salary]{get_wage_salary()}}, \code{\link[=get_sector_employment]{get_sector_employment()}},
+\code{\link[=get_sector_wages]{get_sector_wages()}}, \code{\link[=get_employment_concentration]{get_employment_concentration()}}
 }

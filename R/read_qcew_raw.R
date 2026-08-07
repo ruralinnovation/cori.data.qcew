@@ -10,7 +10,6 @@
 #'   all-industry total row. If \code{TRUE}, return all industry rows.
 #'
 #' @keywords internal
-#' @export
 read_qcew_county_data <- function(year, staging_dir = "data/qcew", keep_industries = FALSE) {
 
   year_dir <- file.path(staging_dir, as.character(year))
