@@ -11,7 +11,6 @@ A data frame with columns:
 \itemize{
 \item \code{variable}: Column name as it appears in \verb{get_*} function output
 \item \code{source_function}: Pipe-separated list of functions that return this variable
-\item \code{raw_variable}: Original BLS/processed variable name (or "derived")
 \item \code{description}: Plain-language description
 \item \code{unit}: Unit of measurement
 \item \code{category}: Variable category
