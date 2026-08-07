@@ -1,6 +1,8 @@
 # cori.data.qcew
 
-An R package for accessing and analyzing Bureau of Labor Statistics [Quarterly Census of Employment and Wages (QCEW)](https://www.bls.gov/cew/) data at the county, state, and national level.
+An R package for accessing and analyzing Bureau of Labor Statistics
+[Quarterly Census of Employment and Wages (QCEW)](https://www.bls.gov/cew/)
+data at the county and state level. Data covers 1990 to the present.
 
 ## Installation
 
@@ -14,68 +16,156 @@ devtools::install_github("ruralinnovation/cori.data.qcew")
 ```r
 library(cori.data.qcew)
 
-# See what variables are available
+# See all available variables and which functions return them
 get_qcew_codebook()
 
-# Read the latest processed data from S3
-df <- read_qcew_from_s3(
-  variables = "annual_avg_emplvl",
-  years     = 2010:as.integer(gsub("vintage_", "", latest_qcew_vintage()))
-)
+# Total employment — all counties, all years
+get_employment(geography = "county")
+
+# Average annual pay — specific counties
+get_wage_salary(geoids = c("33009", "33011"), years = 2010:2023)
+
+# Employment by BLS supersector
+get_sector_employment(geography = "county", years = 2018:2023,
+                      sector_type = "BLS", value_type = "share")
+
+# Employment concentration (HHI)
+get_employment_concentration(geography = "county", years = 2023)
 ```
 
-`read_qcew_from_s3()` queries pre-processed parquet files on S3 using DuckDB — no large downloads required. AWS credentials must be configured.
+All `get_*` functions query pre-processed parquet files on S3 using DuckDB —
+no large downloads required. AWS credentials must be configured.
 
-## Available variables
+---
 
-| Variable | Description | Unit |
+## Functions
+
+| Function | Returns | Key parameters |
 |---|---|---|
-| `annual_avg_emplvl` | Average annual employment | workers |
-| `annual_avg_pay` | Average annual pay (nominal) | dollars/worker |
-| `tradable_goods_emp_share` | Tradable goods employment share | proportion (0–1) |
-| `tradable_services_emp_share` | Tradable services employment share | proportion (0–1) |
-| `local_services_emp_share` | Local services employment share | proportion (0–1) |
-| `tradable_goods_avg_annual_pay` | Tradable goods avg. annual pay | dollars/worker |
-| `tradable_services_avg_annual_pay` | Tradable services avg. annual pay | dollars/worker |
-| `local_services_avg_annual_pay` | Local services avg. annual pay | dollars/worker |
-| `hhi_emp` | Employment Herfindahl-Hirschman Index | index (0–10,000) |
+| `get_employment()` | Total average annual employment | `geography`, `geoids`, `years` |
+| `get_wage_salary()` | Total average annual pay | `geography`, `geoids`, `years` |
+| `get_sector_employment()` | Employment by sector | + `sector_type`, `value_type` |
+| `get_sector_wages()` | Average pay by sector | + `sector_type` |
+| `get_employment_concentration()` | Employment HHI | `geography`, `geoids`, `years` |
 
-See `get_qcew_codebook()` for full definitions including notes on nominal values and aggregation weights.
+All functions return tidy (long) format: `geoid | year | [sector] | variable | value`.
+Rate and share variables include an `agg_var` column (employment weight for
+computing weighted averages across geographies).
 
-## Filtering
+---
+
+## Sector classifications
+
+QCEW sector data is available under two classification systems, controlled by
+the `sector_type` parameter in `get_sector_employment()` and `get_sector_wages()`.
+
+### BLS supersectors (`sector_type = "BLS"`)
+
+The default classification follows the BLS QCEW supersector groupings — 11
+aggregations of 2-digit NAICS industries. These are the source-level groupings
+published by BLS.
+
+See the full BLS definition:
+[BLS QCEW Industry Supersectors](https://www.bls.gov/cew/classifications/industry/industry-supersectors.htm)
+
+| Sector (variable prefix) | BLS Supersector | NAICS codes |
+|---|---|---|
+| `natural_resources_mining` | Natural Resources and Mining | 11, 21 |
+| `construction` | Construction | 23 |
+| `manufacturing` | Manufacturing | 31–33 |
+| `trade_transportation_utilities` | Trade, Transportation, and Utilities | 22, 42, 44–45, 48–49 |
+| `information` | Information | 51 |
+| `financial_activities` | Financial Activities | 52–53 |
+| `professional_business_services` | Professional and Business Services | 54–56 |
+| `education_health_services` | Education and Health Services | 61–62 |
+| `leisure_hospitality` | Leisure and Hospitality | 71–72 |
+| `other_services` | Other Services | 81 |
+| `public_administration` | Public Administration | 92 |
+
+**Note on Public Administration:** BLS publishes government employment under
+ownership codes (Federal, State, Local Government) rather than as a NAICS
+industry. CORI derives public administration employment by summing rows where
+ownership is Federal, State, or Local Government.
+
+### CORI super-sectors (`sector_type = "CORI"`)
+
+CORI aggregates the 11 BLS supersectors into 3 custom super-sectors based on
+whether an industry primarily serves **tradable** (national/international) or
+**local** demand. This classification is loosely derived from the methodology
+in Eckert (2018), Appendix H1.
+
+> Eckert, F. (2018). *Growing Apart: Tradable Services and the Fragmentation
+> of the US Economy*. Job Market Paper, University of Notre Dame.
+> [PDF](https://economics.nd.edu/assets/303413/eckert_jmp_2018.pdf)
+
+| CORI Super-sector | Constituent BLS supersectors | Rationale |
+|---|---|---|
+| **Tradable Goods** | Natural Resources & Mining, Construction, Manufacturing, Trade, Transportation & Utilities | Industries producing or moving physical goods that cross geographic boundaries and face national or international competition |
+| **Tradable Services** | Information, Financial Activities, Professional & Business Services | Knowledge-intensive service industries whose output can be delivered remotely and whose markets extend beyond the local area |
+| **Local Services** | Education & Health Services, Leisure & Hospitality, Other Services, Public Administration | Industries primarily serving local demand — residents and institutions within the geography |
+
+**Important limitations:**
+
+- CORI super-sectors are available as **employment shares only** — not counts.
+  To approximate sector employment counts, multiply `value` (share) by `agg_var`
+  (total employment).
+- The CORI classification is an opinionated aggregation. Use `sector_type = "BLS"`
+  when you need the source-level groupings or want to construct your own aggregations.
+
+---
+
+## Geography
+
+Data is available at two levels:
+
+| `geography` | `geoid` format | Coverage |
+|---|---|---|
+| `"county"` | 5-digit FIPS | ~3,100 U.S. counties |
+| `"state"` | 2-digit FIPS | 50 states + DC |
+
+Use the `geoids` parameter to filter to specific counties or states:
 
 ```r
-# County-level employment for specific states
-read_qcew_from_s3(
-  variables = "annual_avg_emplvl",
-  geoids    = c("23001", "23003", "23005")   # 5-digit FIPS = county
-)
+# Specific counties (5-digit FIPS)
+get_employment(geoids = c("33009", "33011"), years = 2010:2023)
 
-# State-level pay
-read_qcew_from_s3(
-  variables = "annual_avg_pay",
-  geoids    = c("23", "50", "33")            # 2-digit FIPS = state
-)
-
-# National totals only
-read_qcew_from_s3(geoids = "00")             # "00" = national
+# Specific states (2-digit FIPS)
+get_wage_salary(geoids = c("33", "50", "23"), years = 2015:2023)
 ```
+
+---
+
+## Variables
+
+| Variable | Function | Unit | `agg_var` |
+|---|---|---|---|
+| `employment` | `get_employment`, `get_sector_employment` | workers | — |
+| `avg_pay` | `get_wage_salary`, `get_sector_wages` | nominal $/worker | total employment (wages) or sector employment (sector wages) |
+| `emp_share` | `get_sector_employment` | proportion (0–1) | total employment |
+| `employment_hhi` | `get_employment_concentration` | index (0–10,000) | — |
+
+Pay values are **nominal dollars**. To convert to real dollars, deflate using a
+BLS price index such as the
+[Consumer Price Index (CPI-U)](https://www.bls.gov/cpi/) or the
+[Employment Cost Index (ECI)](https://www.bls.gov/eci/).
+
+---
 
 ## Vintages
 
-Each processed snapshot is tagged with a vintage (e.g., `"vintage_2025"`). The `_LATEST` pointer on S3 always resolves to the most recent vintage.
+Each processed snapshot is tagged with a vintage (e.g., `"vintage_2025"`).
+The `_LATEST` pointer on S3 always resolves to the most recent vintage.
 
 ```r
 # Check current vintage
 latest_qcew_vintage()
-
-# Read a specific vintage
-read_qcew_from_s3(vintage = "2024")
 ```
+
+---
 
 ## Updating the data
 
-Run these when BLS publishes new data (see `RELEASE_CALENDAR.md` for timing):
+Run these when BLS publishes new annual data:
 
 ```r
 # 1. Archive the new year's raw BLS file to S3
@@ -83,14 +173,11 @@ write_qcew_raw_to_s3(years = <new_year>, overwrite = TRUE)
 
 # 2. Reprocess all years and publish a new vintage
 write_qcew_processed_to_s3(
-  vintage  = as.character(<new_year>),
-  years    = 1990:<new_year>,
+  vintage   = as.character(<new_year>),
+  years     = 1990:<new_year>,
   overwrite = TRUE
 )
 ```
 
-The `_LATEST` pointer is updated automatically so all users get the new data on their next call to `read_qcew_from_s3()`.
-
-## Vignettes
-
-- **Rural vs. Nonrural Employment Trends** — county employment trends since the Great Recession, broken down by rural status and Census region
+The `_LATEST` pointer updates automatically so all users get new data on
+their next function call.

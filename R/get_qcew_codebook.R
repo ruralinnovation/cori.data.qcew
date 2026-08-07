@@ -68,7 +68,7 @@ get_qcew_codebook <- function() {
 
     description = c(
       "Average annual employment (total covered workers, private + government)",
-      "Average annual pay per worker. Nominal dollars; use cori.utils to deflate.",
+      "Average annual pay per worker. Nominal dollars; deflate using a BLS price index (e.g. CPI-U or ECI) to convert to real terms.",
       paste0(
         "Herfindahl-Hirschman Index of employment concentration across 11 BLS NAICS ",
         "super-sectors. Sum of squared employment shares scaled to 100. Higher values ",

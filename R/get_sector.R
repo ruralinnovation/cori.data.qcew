@@ -111,7 +111,8 @@ get_sector_employment <- function(
 #' - **`"CORI"`**: 3 CORI custom super-sectors — Tradable Goods, Tradable
 #'   Services, and Local Services.
 #'
-#' Pay values are nominal dollars. Use `cori.utils` to deflate to real terms.
+#' Pay values are nominal dollars. Deflate using a BLS price index
+#' (e.g. CPI-U or ECI) to convert to real terms.
 #'
 #' @inheritParams get_sector_employment
 #'
