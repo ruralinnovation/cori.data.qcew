@@ -48,6 +48,21 @@ read_qcew_from_s3 <- function(vintage        = "latest",
                                s3_bucket      = "cori.data.qcew",
                                s3_path_prefix = "") {
 
+  .Deprecated(
+    msg = paste0(
+      "read_qcew_from_s3() is deprecated and will be removed in a future version.\n",
+      "Use domain-specific functions instead:\n",
+      "  get_employment()              - total employment\n",
+      "  get_wage_salary()             - average annual pay\n",
+      "  get_sector_employment()       - employment by sector (BLS or CORI)\n",
+      "  get_sector_wages()            - wages by sector (BLS or CORI)\n",
+      "  get_employment_concentration() - employment HHI\n",
+      "Note: variable names have changed (e.g. annual_avg_emplvl -> employment,\n",
+      "  annual_avg_pay -> avg_pay, hhi_emp -> employment_hhi).\n",
+      "See get_qcew_codebook() for the full variable reference."
+    )
+  )
+
   vintage_tag <- .resolve_vintage(vintage, s3_bucket, s3_path_prefix)
 
   con <- cori.data.s3::connect_to_s3(s3_bucket)
