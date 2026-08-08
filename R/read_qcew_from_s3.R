@@ -50,10 +50,9 @@ read_qcew_from_s3 <- function(vintage        = "latest",
 
   vintage_tag <- .resolve_vintage(vintage, s3_bucket, s3_path_prefix)
 
-  con <- DBI::dbConnect(duckdb::duckdb())
+  con <- cori.data.s3::connect_to_s3(s3_bucket)
   on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
-
-  .setup_duckdb_s3(con)
+  DBI::dbExecute(con, sprintf("SET temp_directory = '%s';", tempdir()))
 
   base_path <- sprintf("s3://%s/%sdata_processed/%s", s3_bucket, s3_path_prefix, vintage_tag)
   glob      <- sprintf("%s/**/*.parquet", base_path)
@@ -88,21 +87,6 @@ read_qcew_from_s3 <- function(vintage        = "latest",
   } else {
     if (!startsWith(vintage, "vintage_")) sprintf("vintage_%s", vintage) else vintage
   }
-}
-
-# Configure DuckDB httpfs for S3 access using the environment credential chain.
-#' @keywords internal
-.setup_duckdb_s3 <- function(con) {
-  DBI::dbExecute(con, "INSTALL httpfs; LOAD httpfs;")
-  DBI::dbExecute(con, "INSTALL aws; LOAD aws;")
-  DBI::dbExecute(con, sprintf("SET temp_directory = '%s';", tempdir()))
-  DBI::dbExecute(con, "CREATE OR REPLACE SECRET s3_secret (
-    TYPE S3,
-    PROVIDER CREDENTIAL_CHAIN,
-    CHAIN 'env;config',
-    REGION 'us-east-1',
-    URL_STYLE 'path'
-  );")
 }
 
 # Build SQL WHERE clause fragments from filter arguments.

@@ -258,17 +258,17 @@ write_qcew_processed_to_s3 <- function(vintage        = NULL,
 # -- Internal helpers ----------------------------------------------------------
 
 # Upload a local path to S3.
-# Directories: uses cori.db::put_s3_objects_recursive.
+# Directories: uses cori.data.s3::put_s3_objects_recursive.
 # Single files (e.g. _LATEST): uses aws s3 cp directly.
 #' @keywords internal
 .upload_to_s3 <- function(s3_bucket, s3_prefix, local_path) {
   message(sprintf("Uploading to s3://%s/%s...", s3_bucket, s3_prefix))
 
   if (file.info(local_path)$isdir) {
-    if (!requireNamespace("cori.db", quietly = TRUE)) {
-      stop("cori.db is required for S3 upload. Install with: devtools::install_github('ruralinnovation/cori.db')")
+    if (!requireNamespace("cori.data.s3", quietly = TRUE)) {
+      stop("cori.data.s3 is required for S3 upload. Install with: devtools::install_github('ruralinnovation/cori.data.s3')")
     }
-    cori.db::put_s3_objects_recursive(
+    cori.data.s3::put_s3_objects_recursive(
       bucket_name   = s3_bucket,
       s3_key_prefix = s3_prefix,
       dir_path      = local_path
