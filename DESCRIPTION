@@ -21,9 +21,9 @@ Imports:
     stringr,
     utils
 Remotes:
-    ruralinnovation/cori.db
+    ruralinnovation/cori.data.s3
 Suggests:
-    cori.db,
+    cori.data.s3,
     cori.charts,
     cori.utils,
     ruraldefinitions,
