@@ -12,6 +12,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
+    cori.data.s3,
     DBI,
     dplyr,
     duckdb,
@@ -21,9 +22,10 @@ Imports:
     stringr,
     utils
 Remotes:
-    ruralinnovation/cori.data.s3
+  ruralinnovation/cori.data.s3,
+  ruralinnovation/cori.utils,
+  ruralinnovation/ruraldefinitions
 Suggests:
-    cori.data.s3,
     cori.charts,
     cori.utils,
     ruraldefinitions,
@@ -36,5 +38,5 @@ Suggests:
     sf,
     tigris
 RoxygenNote: 7.3.3
-VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
+VignetteBuilder: knitr
