@@ -11,8 +11,9 @@ Description: Access and analyze Bureau of Labor Statistics Quarterly Census of
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Depends: 
+    cori.data.s3
 Imports:
-    cori.data.s3,
     DBI,
     dplyr,
     duckdb,
@@ -23,11 +24,10 @@ Imports:
     utils
 Remotes:
   ruralinnovation/cori.data.s3,
-  ruralinnovation/cori.utils,
-  ruralinnovation/ruraldefinitions
+  ruralinnovation/ruraldefinitions,
+  ruralinnovation/cori.charts
 Suggests:
     cori.charts,
-    cori.utils,
     ruraldefinitions,
     ggbeeswarm,
     ggplot2,
