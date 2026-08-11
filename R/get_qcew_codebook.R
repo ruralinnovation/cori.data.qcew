@@ -7,7 +7,6 @@
 #' @return A data frame with columns:
 #'   - `variable`: Column name as it appears in `get_*` function output
 #'   - `source_function`: Pipe-separated list of functions that return this variable
-#'   - `raw_variable`: Original BLS/processed variable name (or "derived")
 #'   - `description`: Plain-language description
 #'   - `unit`: Unit of measurement
 #'   - `category`: Variable category
@@ -37,86 +36,80 @@ get_qcew_codebook <- function() {
     stringsAsFactors = FALSE,
 
     variable = c(
-      # Aggregate metrics
-      "employment",
-      "avg_pay",
-      "employment_hhi",
-      # Sector dimension (returned by sector functions)
+      # Identifiers / dimensions
       "sector",
-      # Sector-level metrics
+      # employment — two raw sources
+      "employment",
+      "employment",
+      # avg_pay — two raw sources
+      "avg_pay",
+      "avg_pay",
+      # share and concentration
       "emp_share",
-      "avg_pay"
+      "employment_hhi"
     ),
 
     source_function = c(
-      "get_employment | get_sector_employment",
-      "get_wage_salary | get_sector_wages",
-      "get_employment_concentration",
       bls_sector_fns,
+      "get_employment",
       "get_sector_employment",
-      "get_sector_wages"
-    ),
-
-    raw_variable = c(
-      "annual_avg_emplvl",
-      "annual_avg_pay",
-      "hhi_emp",
-      "derived",
-      "{sector}_emp_share",
-      "{sector}_avg_annual_pay"
+      "get_wage_salary",
+      "get_sector_wages",
+      "get_sector_employment",
+      "get_employment_concentration"
     ),
 
     description = c(
-      "Average annual employment (total covered workers, private + government)",
-      "Average annual pay per worker. Nominal dollars; deflate using a BLS price index (e.g. CPI-U or ECI) to convert to real terms.",
-      paste0(
-        "Herfindahl-Hirschman Index of employment concentration across 11 BLS NAICS ",
-        "super-sectors. Sum of squared employment shares scaled to 100. Higher values ",
-        "indicate greater concentration (less economic diversity). Range: 0-10,000."
-      ),
       paste0(
         "Sector identifier. BLS sector_type: 11 NAICS super-sectors ",
         "(e.g. 'construction', 'manufacturing'). ",
         "CORI sector_type: 3 super-sectors ",
         "('tradable_goods', 'tradable_services', 'local_services')."
       ),
+      "Total average annual employment across all industries (covered workers, private + government).",
+      "Average annual employment within the sector (covered workers, private + government).",
+      "Total average annual pay per worker across all industries. Nominal dollars; deflate using a BLS price index (e.g. CPI-U or ECI) to convert to real terms.",
+      "Employment-weighted average annual pay within the sector. Nominal dollars; deflate using a BLS price index (e.g. CPI-U or ECI) to convert to real terms.",
       paste0(
-        "Employment share of the sector as a proportion of total employment (0-1). ",
+        "Sector employment as a share of total employment (0-1). ",
         "BLS sector_type: available for all 11 sectors. ",
         "CORI sector_type: available for all 3 super-sectors."
       ),
       paste0(
-        "Employment-weighted average annual pay for the sector. Nominal dollars. ",
-        "BLS sector_type: available for all 11 sectors. ",
-        "CORI sector_type: available for all 3 super-sectors."
+        "Herfindahl-Hirschman Index of employment concentration across 11 BLS NAICS ",
+        "super-sectors. Sum of squared employment shares scaled to 100. Higher values ",
+        "indicate greater concentration (less economic diversity). Range: 0-10,000."
       )
     ),
 
     unit = c(
+      "label",
+      "workers",
       "workers",
       "dollars per worker",
-      "index (0-10,000)",
-      "label",
+      "dollars per worker",
       "proportion (0-1)",
-      "dollars per worker"
+      "index (0-10,000)"
     ),
 
     category = c(
-      "employment",
-      "wages",
-      "concentration",
       "dimension",
       "employment",
-      "wages"
+      "employment",
+      "wages",
+      "wages",
+      "employment",
+      "concentration"
     ),
 
     agg_var_description = c(
       NA,
+      NA,
+      NA,
       "Total employment (weight for employment-weighted pay averages across geographies)",
-      NA,
-      NA,
+      "Sector employment (weight for employment-weighted pay averages across geographies)",
       "Total employment (weight for employment-weighted share aggregation)",
-      "Sector employment (weight for employment-weighted pay averages across geographies)"
+      NA
     )
   )
 }

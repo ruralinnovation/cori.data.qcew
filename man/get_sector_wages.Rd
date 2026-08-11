@@ -41,7 +41,8 @@ sector classification systems are available:
 Services, and Local Services.
 }
 
-Pay values are nominal dollars. Use \code{cori.utils} to deflate to real terms.
+Pay values are nominal dollars. Deflate using a BLS price index
+(e.g. CPI-U or ECI) to convert to real terms.
 }
 \examples{
 \dontrun{

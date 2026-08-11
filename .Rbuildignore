@@ -11,3 +11,5 @@
 ^qcew_processed
 ^LICENSE\.md$
 ^\.git$
+^data-raw$
+^docs$

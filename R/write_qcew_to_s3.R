@@ -259,6 +259,7 @@ write_qcew_processed_to_s3 <- function(vintage        = NULL,
 # Directories: uses cori.data.s3::put_s3_objects_recursive.
 # Single files (e.g. _LATEST): uses aws s3 cp directly.
 #' @keywords internal
+#' @importFrom cori.data.s3 put_s3_objects_recursive
 .upload_to_s3 <- function(s3_bucket, s3_prefix, local_path) {
   message(sprintf("Uploading to s3://%s/%s...", s3_bucket, s3_prefix))
 

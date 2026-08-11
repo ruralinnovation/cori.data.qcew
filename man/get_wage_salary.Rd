@@ -23,9 +23,9 @@ averages across geographies.
 }
 \description{
 Returns BLS-published average annual pay per worker from the Quarterly Census
-of Employment and Wages (QCEW). Values are nominal dollars — use
-\code{cori.utils} to deflate to real terms. Data covers 1990 to the present at
-the county and state level.
+of Employment and Wages (QCEW). Values are nominal dollars — deflate using a
+BLS price index (e.g. CPI-U or ECI) to convert to real terms. Data covers
+1990 to the present at the county and state level.
 }
 \examples{
 \dontrun{
