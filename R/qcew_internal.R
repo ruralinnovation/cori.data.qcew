@@ -37,15 +37,23 @@ QCEW_CORI_SECTORS <- c("tradable_goods", "tradable_services", "local_services")
 QCEW_CORI_LABELS  <- c("Tradable Goods", "Tradable Services", "Local Services")
 
 
-# Internal query: fetch processed QCEW data from S3.
-# Reuses .resolve_vintage(), .setup_duckdb_s3(), and .build_where_clauses()
-# defined in read_qcew_from_s3.R.
-#
-# @param variables  character vector of raw variable names (e.g. "annual_avg_emplvl")
-# @param years      integer vector of years, or NULL for all
-# @param geoids     character vector of FIPS codes, or NULL
-# @param geography  "county", "state", or NULL (both)
-# @param s3_bucket  S3 bucket name
+#' Query QCEW data from S3 via DuckDB
+#'
+#' Internal query engine for all `get_*()` functions. Connects to S3 using
+#' [cori.data.s3::connect_to_s3()], builds a DuckDB query against hive-partitioned
+#' parquet files, and returns long-format results.
+#'
+#' @param variables Character vector. Raw variable names (e.g. "annual_avg_emplvl").
+#' @param years Integer vector or `NULL`. Years to filter; `NULL` returns all.
+#' @param geoids Character vector or `NULL`. FIPS codes to filter; `NULL` returns all.
+#' @param geography Character. `"county"`, `"state"`, or `NULL` (both).
+#' @param s3_bucket Character. S3 bucket name. Default: `"cori.data.qcew"`.
+#'
+#' @return A data frame with columns: `geoid`, `year`, `variable`, `value`, `agg_var`.
+#'
+#' @importFrom cori.data.s3 connect_to_s3
+#'
+#' @keywords internal
 .qcew_query <- function(
   variables  = NULL,
   years      = NULL,
@@ -56,9 +64,9 @@ QCEW_CORI_LABELS  <- c("Tradable Goods", "Tradable Services", "Local Services")
 
   vintage_tag <- .resolve_vintage("latest", s3_bucket)
 
-  con <- DBI::dbConnect(duckdb::duckdb())
+  con <- cori.data.s3::connect_to_s3(s3_bucket)
   on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
-  .setup_duckdb_s3(con)
+  DBI::dbExecute(con, sprintf("SET temp_directory = '%s';", tempdir()))
 
   glob  <- sprintf("s3://%s/data_processed/%s/**/*.parquet", s3_bucket, vintage_tag)
   query <- sprintf(

@@ -13,3 +13,4 @@
 ^\.git$
 ^data-raw$
 ^docs$
+^\.idea$
