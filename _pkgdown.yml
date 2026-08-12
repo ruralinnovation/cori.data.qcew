@@ -1,0 +1,32 @@
+url: https://ruralinnovation.github.io/cori.data.qcew
+
+template:
+  bootstrap: 5
+
+reference:
+- title: Employment and Wages
+  contents:
+  - get_employment
+  - get_wage_salary
+  - get_sector_employment
+  - get_sector_wages
+  - get_employment_concentration
+
+- title: Utilities
+  contents:
+  - get_qcew_codebook
+  - latest_qcew_vintage
+  - read_qcew_from_s3
+
+- title: Internal
+  desc: Functions for data processing and maintenance
+  contents:
+  - download_qcew
+  - pull_annual_pay
+  - pull_employment
+  - pull_hhi
+  - pull_sectoral_employment
+  - pull_sectoral_pay
+  - read_qcew_county_data
+  - write_qcew_processed_to_s3
+  - write_qcew_raw_to_s3

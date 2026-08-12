@@ -9,6 +9,7 @@ Description: Access and analyze Bureau of Labor Statistics Quarterly Census of
     analyze employment and wages by NAICS sector and CORI super-sector
     classification (tradable goods, tradable services, local services).
 License: MIT + file LICENSE
+URL: https://ruralinnovation.github.io/cori.data.qcew
 Encoding: UTF-8
 LazyData: true
 Depends:
