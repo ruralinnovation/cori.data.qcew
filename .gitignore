@@ -43,42 +43,20 @@ vignettes/*.pdf
 
 # data files are not versioned controlled by default,
 # but excpetions can be made when needed with `git add -f ...`
+*.csv
 *.gpkg
 *.shp
 *.RDS
 *.rds
 *.Rds
+*.xlsx
+*.parquet
 
-# IDE files
 .DS_Store
 .idea
 
-# R check artifacts
-..Rcheck/
-
-# Archived legacy code
-archive/
-
-# Local staging data (downloaded from BLS, never commit)
-data/qcew/
-data/qcew_sic/
-qcew_processed/
-
-# Ignore everything in the data and export files
-# Except for README files
-
-# Ignore data subdirectory in project *root*
-/data
-!data/README.md
-
-# Same of inst -> ext_data
-/inst/ext_data
-
-# Same for export
-/export
-!export/README.md
-
-
-inst/doc
-.Rproj.user
-.quarto
+# Skills
+skills/
+# Data
+data/
+docs/
