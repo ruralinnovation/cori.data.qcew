@@ -20,9 +20,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-This vignette shows a common analysis pattern: comparing employment trends
-between rural and nonrural counties since the Great Recession using
-`read_qcew_from_s3()`, the `ruraldefinitions` package, and `cori.charts` for
+This vignett compares employment trends between rural and nonrural counties since the Great Recession using
+`get_employment()`, the `ruraldefinitions` package, and `cori.charts` for
 visualization.
 
 ```{r load}
@@ -41,8 +40,8 @@ load_fonts()
 Pull county-level annual employment for all years since 2007:
 
 ```{r read}
-emp_raw <- read_qcew_from_s3(
-  variables = "annual_avg_emplvl",
+emp_raw <- get_employment(
+  geography = "county",
   years     = 2007:2024
 )
 ```
@@ -54,7 +53,7 @@ Keep only 5-digit county geoids and attach the rural/nonrural flag from
 emp_co <- emp_raw |>
   filter(nchar(geoid) == 5) |>
   left_join(
-    select(cbsa_2023, geoid, is_rural),
+    cbsa_2023 |> select(geoid, is_rural),
     by = "geoid"
   )
 ```
@@ -90,7 +89,7 @@ chrt_dta |>
 ```{r line-chart}
 label_df <- chrt_dta |> filter(year == max(year))
 
-chrt_dta |>
+fig_line <- chrt_dta |>
   ggplot(aes(x = year, y = index_value, color = is_rural, group = is_rural)) +
   annotate("rect", xmin = 2007, xmax = 2009, ymin = .9, ymax = 1.2,
            fill = "grey90", alpha = 0.5) +
@@ -98,7 +97,7 @@ chrt_dta |>
   geom_text_repel(
     data          = label_df,
     aes(label     = is_rural),
-    nudge_x       = 2,
+    nudge_x       = 1.5,
     direction     = "y",
     hjust         = 0,
     segment.color = NA,
@@ -112,7 +111,7 @@ chrt_dta |>
   scale_x_continuous(
     expand   = expansion(mult = c(0, 0)),
     n.breaks = 5,
-    labels   = scales::label_number(accuracy = 1, big.mark = "")
+    labels   = scales::label_number(accuracy = 1)
   ) +
   scale_color_manual(
     values = c(
@@ -136,6 +135,8 @@ chrt_dta |>
       "Note: Indexed to 2007 levels. Rural = nonmetro counties per CBSA 2023 definition."
     )
   )
+
+fig_line
 ```
 
 ## Regional breakdown
@@ -236,33 +237,40 @@ library(ggbeeswarm)
 
 midwest_fips <- c("17", "18", "19", "20", "26", "27", "29", "31", "38", "39", "46", "55")
 
-qcew <- read_qcew_from_s3(
-  variables = c("hhi_emp", "annual_avg_emplvl"),
+emp_raw <- get_employment(
+  geography = "county",
   years     = 2024
 ) |>
   filter(
     nchar(geoid) == 5,
     substr(geoid, 1, 2) %in% midwest_fips
+  ) |> 
+  select(
+    geoid,
+    employment = value
   )
 
-hhi <- qcew |>
-  filter(variable == "hhi_emp") |>
-  select(geoid, hhi = value)
+hhi_raw <- get_employment_concentration(
+  geography = "county",
+  years = 2024
+) |> 
+  select(
+    geoid,
+    employment_hhi = value
+  )
 
-emp <- qcew |>
-  filter(variable == "annual_avg_emplvl") |>
-  select(geoid, employment = value)
 
-midwest_co <- hhi |>
-  left_join(emp, by = "geoid") |>
-  left_join(select(cbsa_2023, geoid, is_rural), by = "geoid") |>
-  filter(!is.na(is_rural), !is.na(hhi))
+midwest_co <- emp_raw |>
+  left_join(hhi_raw, by = "geoid") |>
+  left_join(cbsa_2023 |> select(geoid, is_rural), by = "geoid") |>
+  filter(!is.na(is_rural), !is.na(employment_hhi))
+
 ```
 
 ```{r hhi-swarm}
-midwest_co |>
+fig_swarm <- midwest_co |>
   ggplot(aes(
-    x     = hhi,
+    x     = employment_hhi,
     y     = is_rural,
     size  = employment,
     color = is_rural
@@ -294,11 +302,6 @@ midwest_co |>
     )
   ) +
   theme_cori() +
-  theme(
-    panel.grid.major.y = element_blank(),
-    axis.ticks.x       = element_line(color = "#d0d2ce", linewidth = .25),
-    plot.title         = element_text(color = cori_colors[["Dark Green"]])
-  ) +
   labs(
     title    = "Rural Midwest counties have more concentrated economies",
     subtitle = "Employment HHI by rural status, Midwest counties (2024)",
@@ -310,14 +313,6 @@ midwest_co |>
       "Rural = nonmetro per CBSA 2023 definition."
     )
   )
+
+fig_swarm
 ```
-
-## Notes
-
-- The grey band marks the Great Recession (2007–2009).
-- Rural counties are defined as nonmetro counties using the CBSA 2023
-  definition from `ruraldefinitions::cbsa_2023`.
-- Employment totals reflect covered employment (private + government) from the
-  BLS QCEW all-industry total rows.
-- HHI is computed across BLS NAICS super-sectors. Values above 2,500 are
-  generally considered highly concentrated.

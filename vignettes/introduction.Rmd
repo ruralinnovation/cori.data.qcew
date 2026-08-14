@@ -54,8 +54,8 @@ hhi <- get_employment_concentration(geography = "county", years = 2018:2023)
 
 Two sector classification systems are available via `sector_type`:
 
-- **`"BLS"`** (default) — 11 NAICS super-sectors from the source data
-- **`"CORI"`** — 3 custom super-sectors: Tradable Goods, Tradable Services,
+- **`"BLS"`** (default) — 11 NAICS supersectors from the source data
+- **`"CORI"`** — 3 custom supersectors: Tradable Goods, Tradable Services,
   and Local Services
 
 ```{r sector-employment}
@@ -96,7 +96,7 @@ cori_pay <- get_sector_wages(
 )
 ```
 
-**Note on CORI counts:** CORI super-sector employment counts are not stored
+**Note on CORI counts:** CORI supersector employment counts are not stored
 directly. To derive approximate counts from shares, multiply `value` by `agg_var`:
 
 ```{r cori-counts}
@@ -124,12 +124,20 @@ library(dplyr)
 # Pull county-level employment
 county_emp <- get_employment(geography = "county", years = 2010:2023)
 
-# Join your rural definition and compare
-# (rural_geoids would come from cori.data or ruraldefinitions package)
-county_emp |>
-  mutate(rural = geoid %in% rural_geoids) |>
-  group_by(year, rural) |>
+# Join rural definition and compare (from ruraldefinitions package)
+rural_definition <- ruraldefinitions::cbsa_2023 |> select(geoid, is_rural)
+
+county_comparison <- county_emp |>
+  left_join(
+    rural_definition,
+    by = "geoid"
+  ) |> 
+  filter(!is.na(is_rural), year == 2023) |> 
+  group_by(year, is_rural) |>
   summarize(total_employment = sum(value, na.rm = TRUE), .groups = "drop")
+
+print(county_comparison)
+
 ```
 
 ## Understanding agg_var

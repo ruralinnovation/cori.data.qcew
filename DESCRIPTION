@@ -6,7 +6,7 @@ Authors@R: person("Drew", "Rosebush", email = "drew.rosebush@ruralinnovation.us"
 Description: Access and analyze Bureau of Labor Statistics Quarterly Census of
     Employment and Wages (QCEW) data at the county, state, and national level.
     Provides tools to download data from BLS, read processed data from S3, and
-    analyze employment and wages by NAICS sector and CORI super-sector
+    analyze employment and wages by NAICS sector and CORI supersector
     classification (tradable goods, tradable services, local services).
 License: MIT + file LICENSE
 URL: https://ruralinnovation.github.io/cori.data.qcew
