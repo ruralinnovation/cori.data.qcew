@@ -1,7 +1,7 @@
 # Query QCEW data from S3 via DuckDB
 
 Internal query engine for all `get_*()` functions. Connects to S3 using
-[`cori.data.s3::connect_to_s3()`](https://rdrr.io/pkg/cori.data.s3/man/connect_to_s3.html),
+[`cori.data.s3::connect_to_s3()`](https://ruralinnovation.github.io/cori.data.s3/reference/connect_to_s3.html),
 builds a DuckDB query against hive-partitioned parquet files, and
 returns long-format results.
 

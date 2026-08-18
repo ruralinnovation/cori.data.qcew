@@ -36,10 +36,6 @@ get_sector_employment(geography = "county", years = 2018:2023,
 get_employment_concentration(geography = "county", years = 2023)
 ```
 
-All `get_*` functions query pre-processed parquet files on S3 using
-DuckDB — no large downloads required. AWS credentials must be
-configured.
-
 ------------------------------------------------------------------------
 
 ## Functions
@@ -53,7 +49,7 @@ configured.
 | [`get_employment_concentration()`](https://ruralinnovation.github.io/cori.data.qcew/reference/get_employment_concentration.md) | Employment HHI | `geography`, `geoids`, `years` |
 
 All functions return tidy (long) format:
-`geoid | year | [sector] | variable | value`. Rate and share variables
+`geoid | year | sector | variable | value`. Rate and share variables
 include an `agg_var` column (employment weight for computing weighted
 averages across geographies).
 
@@ -95,10 +91,10 @@ under ownership codes (Federal, State, Local Government) rather than as
 a NAICS industry. CORI derives public administration employment by
 summing rows where ownership is Federal, State, or Local Government.
 
-### CORI super-sectors (`sector_type = "CORI"`)
+### CORI supersectors (`sector_type = "CORI"`)
 
-CORI aggregates the 11 BLS supersectors into 3 custom super-sectors
-based on whether an industry primarily serves **tradable**
+CORI aggregates the 11 BLS supersectors into 3 custom supersectors based
+on whether an industry primarily serves **tradable**
 (national/international) or **local** demand. This classification is
 loosely derived from the methodology in Eckert (2018), Appendix H1.
 
@@ -107,7 +103,7 @@ loosely derived from the methodology in Eckert (2018), Appendix H1.
 > Notre Dame.
 > [PDF](https://economics.nd.edu/assets/303413/eckert_jmp_2018.pdf)
 
-| CORI Super-sector | Constituent BLS supersectors | Rationale |
+| CORI Supersector | Constituent BLS supersectors | Rationale |
 |----|----|----|
 | **Tradable Goods** | Natural Resources & Mining, Construction, Manufacturing, Trade, Transportation & Utilities | Industries producing or moving physical goods that cross geographic boundaries and face national or international competition |
 | **Tradable Services** | Information, Financial Activities, Professional & Business Services | Knowledge-intensive service industries whose output can be delivered remotely and whose markets extend beyond the local area |
@@ -115,7 +111,7 @@ loosely derived from the methodology in Eckert (2018), Appendix H1.
 
 **Important limitations:**
 
-- CORI super-sectors are available as **employment shares only** — not
+- CORI supersectors are available as **employment shares only** — not
   counts. To approximate sector employment counts, multiply `value`
   (share) by `agg_var` (total employment).
 - The CORI classification is an opinionated aggregation. Use

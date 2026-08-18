@@ -105,9 +105,9 @@ support employment-weighted aggregation across geographies).</p>
 <ul>
 <li>
 <strong><code>"BLS"</code></strong> (default) — 11 NAICS
-super-sectors from the source data</li>
+supersectors from the source data</li>
 <li>
-<strong><code>"CORI"</code></strong> — 3 custom super-sectors:
+<strong><code>"CORI"</code></strong> — 3 custom supersectors:
 Tradable Goods, Tradable Services, and Local Services</li>
 </ul>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -144,7 +144,7 @@ Tradable Goods, Tradable Services, and Local Services</li>
 <span>  years       <span class="op">=</span> <span class="fl">2018</span><span class="op">:</span><span class="fl">2023</span>,</span>
 <span>  sector_type <span class="op">=</span> <span class="st">"CORI"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><strong>Note on CORI counts:</strong> CORI super-sector employment
+<p><strong>Note on CORI counts:</strong> CORI supersector employment
 counts are not stored directly. To derive approximate counts from
 shares, multiply <code>value</code> by <code>agg_var</code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -172,12 +172,19 @@ shares, multiply <code>value</code> by <code>agg_var</code>:</p>
 <span><span class="co"># Pull county-level employment</span></span>
 <span><span class="va">county_emp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_employment.html">get_employment</a></span><span class="op">(</span>geography <span class="op">=</span> <span class="st">"county"</span>, years <span class="op">=</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2023</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Join your rural definition and compare</span></span>
-<span><span class="co"># (rural_geoids would come from cori.data or ruraldefinitions package)</span></span>
-<span><span class="va">county_emp</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>rural <span class="op">=</span> <span class="va">geoid</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">rural_geoids</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">rural</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>total_employment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">value</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Join rural definition and compare (from ruraldefinitions package)</span></span>
+<span><span class="va">rural_definition</span> <span class="op">&lt;-</span> <span class="fu">ruraldefinitions</span><span class="fu">::</span><span class="va"><a href="https://ruralinnovation.github.io/ruraldefinitions/reference/cbsa_2023.html" class="external-link">cbsa_2023</a></span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">geoid</span>, <span class="va">is_rural</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">county_comparison</span> <span class="op">&lt;-</span> <span class="va">county_emp</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span></span>
+<span>    <span class="va">rural_definition</span>,</span>
+<span>    by <span class="op">=</span> <span class="st">"geoid"</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">is_rural</span><span class="op">)</span>, <span class="va">year</span> <span class="op">==</span> <span class="fl">2023</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">is_rural</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>total_employment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">value</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">county_comparison</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="understanding-agg_var">Understanding agg_var<a class="anchor" aria-label="anchor" href="#understanding-agg_var"></a>
